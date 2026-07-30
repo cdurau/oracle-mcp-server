@@ -49,7 +49,8 @@ class DatabaseConnector:
                             min=2,
                             max=10,
                             increment=1,
-                            getmode=oracledb.POOL_GETMODE_WAIT
+                            getmode=oracledb.POOL_GETMODE_WAIT,
+                            program="plsqldev.exe"
                         )
                     else:
                         self._pool = oracledb.create_pool_async(
@@ -57,7 +58,8 @@ class DatabaseConnector:
                             min=2,
                             max=10,
                             increment=1,
-                            getmode=oracledb.POOL_GETMODE_WAIT
+                            getmode=oracledb.POOL_GETMODE_WAIT,
+                            program="plsqldev.exe"
                         )
                     print("Database connection pool initialized", file=sys.stderr)
                 except Exception as e:
@@ -74,6 +76,10 @@ class DatabaseConnector:
                 return self._pool.acquire()
             else:
                 return await self._pool.acquire()
+            
+            conn.module = "PL/SQL Developer"
+            conn.action = "Primary Session"
+            return conn
         except Exception as e:
             print(f"Error acquiring connection from pool: {e}", file=sys.stderr)
             raise
