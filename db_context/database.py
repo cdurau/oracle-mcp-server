@@ -73,9 +73,9 @@ class DatabaseConnector:
             
         try:
             if self.thick_mode:
-                return self._pool.acquire()
+                conn = self._pool.acquire()
             else:
-                return await self._pool.acquire()
+                conn = await self._pool.acquire()
             
             conn.module = "PL/SQL Developer"
             conn.action = "Primary Session"
