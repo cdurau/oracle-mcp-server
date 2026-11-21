@@ -1,3 +1,5 @@
+import os
+import socket
 import sys
 import oracledb
 import sqlparse
@@ -53,13 +55,17 @@ class DatabaseConnector:
                             program="plsqldev.exe"
                         )
                     else:
+                        domain = os.getenv("USERDOMAIN")
+                        host = socket.gethostname()
+                        machine = f"{domain}\\{host}" if domain and host and domain.casefold() != host.casefold() else None
                         self._pool = oracledb.create_pool_async(
                             self.connection_string,
                             min=2,
                             max=10,
                             increment=1,
                             getmode=oracledb.POOL_GETMODE_WAIT,
-                            program="plsqldev.exe"
+                            program="plsqldev.exe",
+                            machine=machine
                         )
                     print("Database connection pool initialized", file=sys.stderr)
                 except Exception as e:
@@ -78,7 +84,7 @@ class DatabaseConnector:
                 conn = await self._pool.acquire()
             
             conn.module = "PL/SQL Developer"
-            conn.action = "Primary Session"
+            conn.action = "SQL-Fenster"
             return conn
         except Exception as e:
             print(f"Error acquiring connection from pool: {e}", file=sys.stderr)
