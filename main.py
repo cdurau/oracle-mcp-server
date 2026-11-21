@@ -17,7 +17,11 @@ from db_context.schema.formatter import format_sql_query_result
 # Load environment variables from .env file
 load_dotenv()
 
-ORACLE_CONNECTION_STRING = os.getenv('ORACLE_CONNECTION_STRING')
+# Connection string is read from the variable named by ORACLE_CONNECTION_STRING_VAR
+# (default: ORACLE_CONNECTION_STRING). This allows multiple MCP server instances
+# to use different per-schema variables (e.g. ORACLE_CONNECTION_STRING_COR_ALG_TEST).
+_conn_str_var = os.getenv('ORACLE_CONNECTION_STRING_VAR') or 'ORACLE_CONNECTION_STRING'
+ORACLE_CONNECTION_STRING = os.getenv(_conn_str_var)
 TARGET_SCHEMA = os.getenv('TARGET_SCHEMA')  # Optional schema override
 CACHE_DIR = os.getenv('CACHE_DIR', '.cache')
 USE_THICK_MODE = os.getenv('THICK_MODE', '').lower() in ('true', '1', 'yes')  # Convert string to boolean
@@ -30,7 +34,7 @@ async def app_lifespan(server: FastMCP) -> AsyncIterator[DatabaseContext]:
     print("App Lifespan initialising", file=sys.stderr)
     connection_string = ORACLE_CONNECTION_STRING
     if not connection_string:
-        raise ValueError("ORACLE_CONNECTION_STRING environment variable is required. Set it in .env file or environment.")
+        raise ValueError(f"{_conn_str_var} environment variable is required. Set it in .env file or environment.")
     
     cache_dir = Path(CACHE_DIR)
     cache_dir.mkdir(parents=True, exist_ok=True)
